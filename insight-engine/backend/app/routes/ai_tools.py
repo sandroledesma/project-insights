@@ -1,21 +1,41 @@
 from flask import Blueprint, jsonify, request
 from app import db
 from app.models import AITool, AggregatedReview
-from app.services.reddit_service import RedditService
 import logging
+import time
 
 ai_tools_bp = Blueprint('ai_tools', __name__)
-reddit_service = RedditService()
+# Lazy load RedditService to avoid hanging during startup
+_reddit_service = None
+
+def get_reddit_service():
+    global _reddit_service
+    if _reddit_service is None:
+        from app.services.reddit_service import RedditService
+        _reddit_service = RedditService()
+    return _reddit_service
 
 @ai_tools_bp.route('/ai-tools', methods=['GET'])
 def get_ai_tools():
     """
     GET /api/ai-tools
-    Returns a JSON list of all AI tools
+    Returns a JSON list of all AI tools with their aggregated review data
     """
     try:
         tools = AITool.query.all()
-        tools_data = [tool.to_dict() for tool in tools]
+        tools_data = []
+        
+        for tool in tools:
+            tool_dict = tool.to_dict()
+            
+            # Get aggregated review data for this tool
+            aggregated_review = AggregatedReview.query.filter_by(tool_id=tool.id).first()
+            if aggregated_review:
+                tool_dict['aggregated_review'] = aggregated_review.to_dict()
+            else:
+                tool_dict['aggregated_review'] = None
+            
+            tools_data.append(tool_dict)
         
         return jsonify({
             'success': True,
@@ -67,8 +87,20 @@ def get_reddit_reviews(tool_id):
     try:
         tool = AITool.query.get_or_404(tool_id)
         
+        # Set a timeout for the Reddit search
+        start_time = time.time()
+        timeout_seconds = 30  # 30 second timeout
+        
         # Fetch Reddit reviews
+        reddit_service = get_reddit_service()
         reviews = reddit_service.search_reviews(tool.name)
+        
+        # Check timeout
+        if time.time() - start_time > timeout_seconds:
+            return jsonify({
+                'success': False,
+                'error': 'Request timed out. Reddit search took too long.'
+            }), 408
         
         # Aggregate the reviews
         aggregated_data = reddit_service.aggregate_reviews(reviews)
@@ -105,7 +137,8 @@ def get_reddit_reviews(tool_id):
                 'tool': tool.to_dict(),
                 'reviews': reviews,
                 'aggregated_data': aggregated_data,
-                'total_reviews_found': len(reviews)
+                'total_reviews_found': len(reviews),
+                'search_time': round(time.time() - start_time, 2)
             }
         }), 200
         
@@ -125,8 +158,21 @@ def refresh_reviews(tool_id):
     try:
         tool = AITool.query.get_or_404(tool_id)
         
+        # Set a timeout for the Reddit search
+        start_time = time.time()
+        timeout_seconds = 30  # 30 second timeout
+        
         # Fetch fresh Reddit reviews
+        reddit_service = get_reddit_service()
         reviews = reddit_service.search_reviews(tool.name)
+        
+        # Check timeout
+        if time.time() - start_time > timeout_seconds:
+            return jsonify({
+                'success': False,
+                'error': 'Request timed out. Reddit search took too long.'
+            }), 408
+        
         aggregated_data = reddit_service.aggregate_reviews(reviews)
         
         # Update database
@@ -156,7 +202,8 @@ def refresh_reviews(tool_id):
         return jsonify({
             'success': True,
             'message': f'Reviews refreshed for {tool.name}',
-            'total_reviews': len(reviews)
+            'total_reviews': len(reviews),
+            'search_time': round(time.time() - start_time, 2)
         }), 200
         
     except Exception as e:

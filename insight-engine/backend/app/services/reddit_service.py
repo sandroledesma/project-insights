@@ -3,6 +3,8 @@ import os
 from textblob import TextBlob
 from typing import List, Dict, Optional
 import logging
+import random
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +15,18 @@ class RedditService:
     
     def __init__(self):
         """Initialize Reddit API client"""
-        self.reddit = praw.Reddit(
-            client_id=os.getenv('REDDIT_CLIENT_ID'),
-            client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-            user_agent=os.getenv('REDDIT_USER_AGENT', 'InsightEngine/1.0')
-        )
+        # Check if Reddit credentials are configured
+        self.has_credentials = bool(os.getenv('REDDIT_CLIENT_ID') and os.getenv('REDDIT_CLIENT_SECRET'))
+        
+        if self.has_credentials:
+            self.reddit = praw.Reddit(
+                client_id=os.getenv('REDDIT_CLIENT_ID'),
+                client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
+                user_agent=os.getenv('REDDIT_USER_AGENT', 'InsightEngine/1.0')
+            )
+        else:
+            logger.warning("Reddit credentials not configured. Using demo mode.")
+            self.reddit = None
         
     def search_reviews(self, tool_name: str, subreddits: List[str] = None) -> List[Dict]:
         """
@@ -30,40 +39,49 @@ class RedditService:
         Returns:
             List of review dictionaries with sentiment analysis
         """
+        # If no Reddit credentials, return demo data
+        if not self.has_credentials:
+            return self._get_demo_reviews(tool_name)
+        
+        # Use fewer, more relevant subreddits for faster results
         if subreddits is None:
             subreddits = [
-                'artificial', 'MachineLearning', 'datascience', 
-                'programming', 'technology', 'startups',
-                'ChatGPT', 'OpenAI', 'AI', 'artificialintelligence'
+                'ChatGPT', 'OpenAI', 'artificial', 'MachineLearning'
             ]
         
         reviews = []
         
         for subreddit_name in subreddits:
             try:
+                logger.info(f"Searching subreddit: {subreddit_name}")
                 subreddit = self.reddit.subreddit(subreddit_name)
                 
-                # Search for posts about the tool
+                # Search for posts about the tool with smaller limit
                 search_query = f"{tool_name}"
-                posts = subreddit.search(search_query, sort='relevance', time_filter='year', limit=50)
+                posts = subreddit.search(search_query, sort='relevance', time_filter='month', limit=10)
                 
                 for post in posts:
+                    # Skip posts with very low scores
+                    if post.score < 5:
+                        continue
+                        
                     # Analyze the post title and content
                     title_sentiment = self._analyze_sentiment(post.title)
                     content_sentiment = self._analyze_sentiment(post.selftext) if post.selftext else None
                     
-                    # Get comments
-                    post.comments.replace_more(limit=0)  # Remove MoreComments objects
+                    # Get only top comments (faster)
+                    post.comments.replace_more(limit=0)
                     comments = []
                     
-                    for comment in post.comments.list()[:10]:  # Top 10 comments
-                        comment_sentiment = self._analyze_sentiment(comment.body)
-                        comments.append({
-                            'body': comment.body,
-                            'score': comment.score,
-                            'sentiment': comment_sentiment,
-                            'created_utc': comment.created_utc
-                        })
+                    for comment in post.comments.list()[:5]:  # Only top 5 comments
+                        if comment.score > 2:  # Only comments with good scores
+                            comment_sentiment = self._analyze_sentiment(comment.body)
+                            comments.append({
+                                'body': comment.body,
+                                'score': comment.score,
+                                'sentiment': comment_sentiment,
+                                'created_utc': comment.created_utc
+                            })
                     
                     reviews.append({
                         'title': post.title,
@@ -78,11 +96,63 @@ class RedditService:
                         'subreddit': subreddit_name
                     })
                     
+                    # Stop if we have enough reviews
+                    if len(reviews) >= 8:
+                        break
+                        
             except Exception as e:
                 logger.error(f"Error searching subreddit {subreddit_name}: {e}")
                 continue
+            
+            # Add a small delay to be respectful to Reddit API
+            time.sleep(0.5)
         
         return reviews
+    
+    def _get_demo_reviews(self, tool_name: str) -> List[Dict]:
+        """
+        Generate demo reviews for testing without Reddit credentials
+        """
+        demo_reviews = [
+            {
+                'title': f'Just tried {tool_name} - Amazing results!',
+                'content': f'I was skeptical at first, but {tool_name} really delivers. The interface is intuitive and the results are impressive.',
+                'url': 'https://reddit.com/r/demo/1',
+                'score': 45,
+                'upvote_ratio': 0.95,
+                'created_utc': 1640995200,
+                'title_sentiment': {'polarity': 0.8, 'subjectivity': 0.6, 'sentiment': 'positive'},
+                'content_sentiment': {'polarity': 0.7, 'subjectivity': 0.5, 'sentiment': 'positive'},
+                'comments': [],
+                'subreddit': 'demo'
+            },
+            {
+                'title': f'{tool_name} vs competitors - My experience',
+                'content': f'After testing several AI tools, {tool_name} stands out for its reliability and feature set. Highly recommend!',
+                'url': 'https://reddit.com/r/demo/2',
+                'score': 32,
+                'upvote_ratio': 0.88,
+                'created_utc': 1640995200,
+                'title_sentiment': {'polarity': 0.3, 'subjectivity': 0.4, 'sentiment': 'positive'},
+                'content_sentiment': {'polarity': 0.6, 'subjectivity': 0.7, 'sentiment': 'positive'},
+                'comments': [],
+                'subreddit': 'demo'
+            },
+            {
+                'title': f'Frustrated with {tool_name} pricing',
+                'content': f'While {tool_name} works well, the pricing model is confusing and expensive for small projects.',
+                'url': 'https://reddit.com/r/demo/3',
+                'score': 15,
+                'upvote_ratio': 0.75,
+                'created_utc': 1640995200,
+                'title_sentiment': {'polarity': -0.6, 'subjectivity': 0.8, 'sentiment': 'negative'},
+                'content_sentiment': {'polarity': -0.4, 'subjectivity': 0.6, 'sentiment': 'negative'},
+                'comments': [],
+                'subreddit': 'demo'
+            }
+        ]
+        
+        return demo_reviews
     
     def _analyze_sentiment(self, text: str) -> Dict:
         """

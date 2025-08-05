@@ -1,0 +1,19 @@
+.App {
+  text-align: left;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+main {
+  flex: 1;
+}
+
+/* Ensure the app takes full height */
+html, body, #root {
+  height: 100%;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+} 

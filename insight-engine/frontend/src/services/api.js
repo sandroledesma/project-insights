@@ -4,15 +4,11 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api
  * API service for communicating with the backend
  */
 class ApiService {
-  /**
-   * Fetch all AI tools from the backend
-   * @returns {Promise<Array>} Array of AI tools
-   */
+  // AI Tools endpoints
   async getAITools() {
     try {
       const response = await fetch(`${API_BASE_URL}/ai-tools`);
       const data = await response.json();
-      
       if (data.success) {
         return data.data;
       } else {
@@ -24,16 +20,10 @@ class ApiService {
     }
   }
 
-  /**
-   * Fetch a single AI tool by ID
-   * @param {number} toolId - The ID of the AI tool
-   * @returns {Promise<Object>} AI tool data with aggregated review
-   */
-  async getAITool(toolId) {
+  async getAITool(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/ai-tools/${toolId}`);
+      const response = await fetch(`${API_BASE_URL}/ai-tools/${id}`);
       const data = await response.json();
-      
       if (data.success) {
         return data.data;
       } else {
@@ -45,16 +35,10 @@ class ApiService {
     }
   }
 
-  /**
-   * Fetch Reddit reviews for a specific AI tool
-   * @param {number} toolId - The ID of the AI tool
-   * @returns {Promise<Object>} Reddit reviews and aggregated data
-   */
   async getRedditReviews(toolId) {
     try {
       const response = await fetch(`${API_BASE_URL}/ai-tools/${toolId}/reddit-reviews`);
       const data = await response.json();
-      
       if (data.success) {
         return data.data;
       } else {
@@ -66,11 +50,6 @@ class ApiService {
     }
   }
 
-  /**
-   * Refresh Reddit reviews for a specific AI tool
-   * @param {number} toolId - The ID of the AI tool
-   * @returns {Promise<Object>} Refresh result
-   */
   async refreshReviews(toolId) {
     try {
       const response = await fetch(`${API_BASE_URL}/ai-tools/${toolId}/refresh-reviews`, {
@@ -80,7 +59,6 @@ class ApiService {
         },
       });
       const data = await response.json();
-      
       if (data.success) {
         return data;
       } else {
@@ -88,6 +66,87 @@ class ApiService {
       }
     } catch (error) {
       console.error('Error refreshing reviews:', error);
+      throw error;
+    }
+  }
+
+  // Luxury Appliances endpoints
+  async getLuxeAppliances() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/luxe-appliances`);
+      const data = await response.json();
+      if (data.success) {
+        return data.data;
+      } else {
+        throw new Error(data.error || 'Failed to fetch luxury appliances');
+      }
+    } catch (error) {
+      console.error('Error fetching luxury appliances:', error);
+      throw error;
+    }
+  }
+
+  async getLuxeAppliance(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/luxe-appliances/${id}`);
+      const data = await response.json();
+      if (data.success) {
+        return data.data;
+      } else {
+        throw new Error(data.error || 'Failed to fetch luxury appliance');
+      }
+    } catch (error) {
+      console.error('Error fetching luxury appliance:', error);
+      throw error;
+    }
+  }
+
+  async getLuxeReviews(applianceId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/luxe-appliances/${applianceId}/reviews`);
+      const data = await response.json();
+      if (data.success) {
+        return data.data;
+      } else {
+        throw new Error(data.error || 'Failed to fetch luxury appliance reviews');
+      }
+    } catch (error) {
+      console.error('Error fetching luxury appliance reviews:', error);
+      throw error;
+    }
+  }
+
+  async refreshLuxeReviews(applianceId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/luxe-appliances/${applianceId}/refresh-reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      if (data.success) {
+        return data;
+      } else {
+        throw new Error(data.error || 'Failed to refresh luxury appliance reviews');
+      }
+    } catch (error) {
+      console.error('Error refreshing luxury appliance reviews:', error);
+      throw error;
+    }
+  }
+
+  async getDesignInsights() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/luxe-appliances/design-insights`);
+      const data = await response.json();
+      if (data.success) {
+        return data.data;
+      } else {
+        throw new Error(data.error || 'Failed to fetch design insights');
+      }
+    } catch (error) {
+      console.error('Error fetching design insights:', error);
       throw error;
     }
   }

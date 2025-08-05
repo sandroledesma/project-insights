@@ -1,17 +1,20 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import AIToolList from './pages/AIToolList';
-import ComparisonPage from './pages/ComparisonPage';
 import Header from './components/Header';
+import AIToolList from './pages/AIToolList';
+import LuxeApplianceList from './pages/LuxeApplianceList';
+import ComparisonPage from './pages/ComparisonPage';
+import './App.css';
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="App">
         <Header />
-        <main className="container mx-auto px-4 py-8">
+        <main>
           <Routes>
             <Route path="/" element={<AIToolList />} />
+            <Route path="/luxe" element={<LuxeApplianceList />} />
             <Route path="/compare" element={<ComparisonPage />} />
           </Routes>
         </main>
