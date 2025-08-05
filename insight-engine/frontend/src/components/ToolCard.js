@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import apiService from '../services/api';
 
-const ToolCard = ({ tool }) => {
+const ToolCard = ({ tool, onRefresh }) => {
   const { name, short_description, website, pricing_model, primary_use_case, aggregated_review } = tool;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Generate star rating display
   const renderStars = (rating) => {
@@ -48,6 +50,20 @@ const ToolCard = ({ tool }) => {
     return <div className="flex">{stars}</div>;
   };
 
+  const handleRefreshReviews = async () => {
+    setIsRefreshing(true);
+    try {
+      await apiService.refreshReviews(tool.id);
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error('Error refreshing reviews:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
       <div className="p-6">
@@ -90,8 +106,26 @@ const ToolCard = ({ tool }) => {
           </p>
         )}
 
+        {/* Sentiment Summaries */}
+        {aggregated_review && (
+          <div className="mb-4 space-y-2">
+            {aggregated_review.positive_sentiment_summary && (
+              <div className="text-xs">
+                <span className="font-medium text-green-600">👍 Positive:</span>
+                <span className="text-gray-600 ml-1">{aggregated_review.positive_sentiment_summary}</span>
+              </div>
+            )}
+            {aggregated_review.negative_sentiment_summary && (
+              <div className="text-xs">
+                <span className="font-medium text-red-600">👎 Negative:</span>
+                <span className="text-gray-600 ml-1">{aggregated_review.negative_sentiment_summary}</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Tags */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mb-4">
           {pricing_model && (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
               {pricing_model}
@@ -103,6 +137,34 @@ const ToolCard = ({ tool }) => {
             </span>
           )}
         </div>
+
+        {/* Refresh Reviews Button */}
+        <button
+          onClick={handleRefreshReviews}
+          disabled={isRefreshing}
+          className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+            isRefreshing
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'bg-primary-50 text-primary-700 hover:bg-primary-100'
+          }`}
+        >
+          {isRefreshing ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Refreshing...
+            </span>
+          ) : (
+            <span className="flex items-center justify-center">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh Reddit Reviews
+            </span>
+          )}
+        </button>
       </div>
     </div>
   );
