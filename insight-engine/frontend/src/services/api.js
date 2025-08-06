@@ -70,10 +70,10 @@ class ApiService {
     }
   }
 
-  // Luxury Appliances endpoints
+  // Luxury Appliances endpoints - Updated to match new backend
   async getLuxeAppliances() {
     try {
-      const response = await fetch(`${API_BASE_URL}/luxe-appliances`);
+      const response = await fetch(`${API_BASE_URL}/luxury-appliances`);
       const data = await response.json();
       if (data.success) {
         return data.data;
@@ -88,7 +88,7 @@ class ApiService {
 
   async getLuxeAppliance(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/luxe-appliances/${id}`);
+      const response = await fetch(`${API_BASE_URL}/luxury-appliances/${id}`);
       const data = await response.json();
       if (data.success) {
         return data.data;
@@ -103,7 +103,7 @@ class ApiService {
 
   async getLuxeReviews(applianceId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/luxe-appliances/${applianceId}/reviews`);
+      const response = await fetch(`${API_BASE_URL}/luxury-appliances/${applianceId}/reviews`);
       const data = await response.json();
       if (data.success) {
         return data.data;
@@ -118,7 +118,7 @@ class ApiService {
 
   async refreshLuxeReviews(applianceId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/luxe-appliances/${applianceId}/refresh-reviews`, {
+      const response = await fetch(`${API_BASE_URL}/luxury-appliances/${applianceId}/refresh-reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -138,7 +138,7 @@ class ApiService {
 
   async getDesignInsights() {
     try {
-      const response = await fetch(`${API_BASE_URL}/luxe-appliances/design-insights`);
+      const response = await fetch(`${API_BASE_URL}/luxury-appliances/insights`);
       const data = await response.json();
       if (data.success) {
         return data.data;

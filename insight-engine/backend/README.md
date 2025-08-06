@@ -1,190 +1,124 @@
-# Insight-Engine Backend
+# Insight Engine Backend
 
-Flask-based REST API for the Insight-Engine AI platform review aggregator.
+A robust Flask-based API for the Insight Engine review aggregator, providing deep insights for brands and products across all industries.
 
-## Setup Instructions
+## Features
 
-### Prerequisites
-
-- Python 3.8+
-- PostgreSQL database
-- Docker (optional, for database)
-
-### Installation
-
-1. **Create virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your database configuration
-   ```
-
-4. **Start PostgreSQL database:**
-   
-   **Option A: Using Docker (Recommended)**
-   ```bash
-   docker run --name insight-engine-db \
-     -e POSTGRES_PASSWORD=password \
-     -e POSTGRES_DB=insight_engine \
-     -p 5432:5432 \
-     -d postgres:13
-   ```
-   
-   **Option B: Local PostgreSQL**
-   - Install PostgreSQL on your system
-   - Create a database named `insight_engine`
-   - Update the `DATABASE_URL` in your `.env` file
-
-5. **Initialize database:**
-   ```bash
-   flask init-db
-   flask seed-db
-   ```
-
-6. **Run the development server:**
-   ```bash
-   python run.py
-   ```
-
-The API will be available at `http://localhost:5000`
-
-## API Endpoints
-
-### GET /api/ai-tools
-Returns a list of all AI tools.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "ChatGPT",
-      "website": "https://chat.openai.com",
-      "short_description": "Advanced language model for conversation and text generation",
-      "pricing_model": "Freemium",
-      "primary_use_case": "Content Creation"
-    }
-  ],
-  "count": 1
-}
-```
-
-### GET /api/ai-tools/<id>
-Returns details for a specific AI tool including aggregated review data.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "name": "ChatGPT",
-    "website": "https://chat.openai.com",
-    "short_description": "Advanced language model for conversation and text generation",
-    "pricing_model": "Freemium",
-    "primary_use_case": "Content Creation",
-    "aggregated_review": {
-      "id": 1,
-      "tool_id": 1,
-      "overall_rating": 4.5,
-      "ease_of_use_score": 4.2,
-      "feature_score": 4.7,
-      "value_for_money_score": 4.0,
-      "positive_sentiment_summary": "Users love the conversational interface",
-      "negative_sentiment_summary": "Some users find the pricing confusing"
-    }
-  }
-}
-```
-
-## Database Models
-
-### AITool
-Represents an AI platform or tool.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer | Primary key |
-| `name` | String | Tool name (unique) |
-| `website` | String | Official website URL |
-| `short_description` | Text | Brief description |
-| `pricing_model` | String | Pricing model (e.g., "Freemium", "Subscription") |
-| `primary_use_case` | String | Main use case (e.g., "Content Creation") |
-
-### AggregatedReview
-Represents consolidated review data for an AI tool.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer | Primary key |
-| `tool_id` | Integer | Foreign key to AITool |
-| `overall_rating` | Float | Overall rating (0.0-5.0) |
-| `ease_of_use_score` | Float | Ease of use rating |
-| `feature_score` | Float | Feature completeness rating |
-| `value_for_money_score` | Float | Value for money rating |
-| `positive_sentiment_summary` | Text | Summary of positive feedback |
-| `negative_sentiment_summary` | Text | Summary of negative feedback |
-
-## Development
-
-### Adding Sample Data
-
-Use the Flask CLI to add sample data:
-
-```bash
-flask seed-db
-```
-
-### Database Migrations
-
-For production, consider using Flask-Migrate for database migrations:
-
-```bash
-pip install Flask-Migrate
-```
-
-### Testing
-
-Run tests (when implemented):
-
-```bash
-python -m pytest
-```
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:password@localhost:5432/insight_engine` |
-| `FLASK_ENV` | Flask environment | `development` |
-| `FLASK_DEBUG` | Enable debug mode | `1` |
+- **Multi-Industry API**: Comprehensive endpoints for any product category
+- **AI-Powered Insights**: Automated sentiment analysis and trend detection
+- **Scalable Architecture**: Blueprint-based modular design
+- **Database Migrations**: Flask-Migrate for schema management
+- **Real-Time Data**: Integration with multiple review sources
 
 ## Project Structure
 
 ```
 backend/
-├── app/
-│   ├── __init__.py          # Flask app factory
-│   ├── models/              # Database models
+├── project/
+│   ├── __init__.py          # Application factory
+│   ├── api/
 │   │   ├── __init__.py
-│   │   ├── ai_tool.py
-│   │   └── aggregated_review.py
-│   └── routes/              # API routes
+│   │   ├── ai_tools.py      # AI tools endpoints
+│   │   └── luxury_appliances.py  # Luxury appliances endpoints
+│   └── models/
 │       ├── __init__.py
-│       └── ai_tools.py
-├── requirements.txt          # Python dependencies
+│       └── models.py        # SQLAlchemy models
+├── config.py                # Configuration management
 ├── run.py                   # Application entry point
-└── .env.example            # Environment variables template
-``` 
+└── requirements.txt         # Python dependencies
+```
+
+## Setup
+
+1. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Initialize Database**:
+   ```bash
+   flask init-db
+   ```
+
+3. **Seed Sample Data**:
+   ```bash
+   flask seed-ai-tools
+   flask seed-luxury-appliances
+   flask seed-reviews
+   ```
+
+4. **Run the Server**:
+   ```bash
+   python run.py
+   ```
+
+The API will be available at `http://localhost:5001`
+
+## API Endpoints
+
+### Health Check
+- `GET /health` - Server health status
+
+### AI Tools
+- `GET /api/ai-tools` - List all AI tools with insights
+- `GET /api/ai-tools/<id>` - Get specific AI tool details
+- `GET /api/ai-tools/<id>/reviews` - Get reviews for specific tool
+- `GET /api/ai-tools/insights` - Get aggregated insights
+
+### Luxury Appliances
+- `GET /api/luxury-appliances` - List all luxury appliances
+- `GET /api/luxury-appliances/<id>` - Get specific appliance details
+- `GET /api/luxury-appliances/<id>/reviews` - Get reviews for specific appliance
+- `GET /api/luxury-appliances/insights` - Get aggregated insights
+- `GET /api/luxury-appliances/brands` - Get brand statistics
+
+## Database Models
+
+### AITool
+- Core fields: name, website, short_description, pricing_model, primary_use_case
+- Insight fields: insight_snippet, ideal_for_tags
+
+### LuxuryAppliance
+- Core fields: name, brand, category, model_number, msrp, features
+- Insight fields: insight_snippet, style_tags
+
+### AggregatedReview
+- Rating fields: overall_rating, ease_of_use_score, feature_score, value_for_money_score
+- Insight fields: key_insights, common_complaints, standout_features
+- Supports both AI tools and luxury appliances via foreign keys
+
+## Configuration
+
+Environment variables can be set in `.env`:
+- `SECRET_KEY` - Flask secret key
+- `DATABASE_URL` - Database connection string
+- `REDDIT_CLIENT_ID` - Reddit API client ID
+- `REDDIT_CLIENT_SECRET` - Reddit API client secret
+
+## Development
+
+- **Debug Mode**: Set `debug=True` in `run.py`
+- **Database**: SQLite by default, can be changed to PostgreSQL
+- **CORS**: Configured for frontend at `http://localhost:3000`
+
+## CLI Commands
+
+- `flask init-db` - Initialize database tables
+- `flask seed-ai-tools` - Seed sample AI tools
+- `flask seed-luxury-appliances` - Seed sample luxury appliances
+- `flask seed-reviews` - Seed sample aggregated reviews
+
+## Future Expansion
+
+The backend is designed to easily support new product categories:
+- Consumer Electronics
+- Fashion & Beauty
+- Automotive
+- Food & Beverage
+- Healthcare & Wellness
+- And many more...
+
+Each new category can be added by:
+1. Creating new models in `project/models/models.py`
+2. Adding API blueprints in `project/api/`
+3. Creating seed data commands in `run.py` 
