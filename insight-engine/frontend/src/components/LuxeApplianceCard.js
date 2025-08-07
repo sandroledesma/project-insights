@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LogoDisplay from './LogoDisplay';
 import apiService from '../services/api';
 
 const LuxeApplianceCard = ({ appliance, onRefresh }) => {
@@ -75,91 +76,108 @@ const LuxeApplianceCard = ({ appliance, onRefresh }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden group">
-      {/* Header with rating */}
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-1">
-              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+    <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg dark:hover:shadow-2xl transition-all duration-300 overflow-hidden group">
+      {/* Header with logo, title, and rating */}
+      <div className="p-8">
+        <div className="flex items-start space-x-6">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <LogoDisplay 
+              name={brand || name}
+              website={website}
+              size="xl"
+              className="group-hover:scale-105 transition-transform duration-200"
+            />
+          </div>
+          
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            {/* Brand and Category Tags */}
+            <div className="flex items-center space-x-3 mb-4">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-accent-blue bg-accent-blue/10 border border-accent-blue/20">
                 {brand}
               </span>
-              <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                 {category}
               </span>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-              {name}
-            </h3>
+
+            {/* Title (clickable to website) */}
+            <div className="mb-3">
+              {website ? (
+                <a
+                  href={website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group/title"
+                >
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-white group-hover/title:text-accent-blue transition-colors duration-200 leading-tight">
+                    {name}
+                  </h3>
+                </a>
+              ) : (
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-white leading-tight">
+                  {name}
+                </h3>
+              )}
+            </div>
+
+            {/* Model Number */}
             {model_number && (
-              <p className="text-sm text-gray-500 mb-2">Model: {model_number}</p>
+              <p className="text-base text-gray-500 dark:text-gray-400 mb-4">Model: {model_number}</p>
             )}
-            {website && (
-              <a
-                href={website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:text-blue-700 underline inline-flex items-center"
-              >
-                Visit Website
-                <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
+
+            {/* Description */}
+            {description && (
+              <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-6">
+                {description}
+              </p>
             )}
-          </div>
-          
-          {/* Rating */}
-          <div className="text-right">
-            {aggregated_review ? (
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-1">
+
+            {/* Rating - separate section */}
+            {aggregated_review && (
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="flex items-center space-x-2">
                   {renderStars(aggregated_review.overall_rating)}
-                  <span className="text-lg font-bold text-gray-900 ml-1">
+                </div>
+                <div className="flex items-baseline space-x-1">
+                  <span className="text-2xl font-bold text-gray-800 dark:text-white">
                     {aggregated_review.overall_rating?.toFixed(1)}
                   </span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">/5</span>
                 </div>
-                <span className="text-xs text-gray-500">/5</span>
               </div>
-            ) : (
-              <span className="text-gray-400 text-sm">No rating</span>
             )}
           </div>
         </div>
-
-        {/* Description */}
-        {description && (
-          <p className="text-gray-600 text-sm leading-relaxed">
-            {description}
-          </p>
-        )}
       </div>
 
       {/* Specifications */}
-      <div className="px-6 py-3 bg-gray-50">
-        <div className="grid grid-cols-2 gap-4 text-sm">
+      <div className="px-8 py-6 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-700">
+        <h4 className="font-semibold text-gray-800 dark:text-white mb-4 text-lg">Specifications</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {price_range && (
-            <div>
-              <span className="font-medium text-gray-900">Price:</span>
-              <span className="text-gray-600 ml-1">{price_range}</span>
+            <div className="flex justify-between py-2">
+              <span className="font-medium text-gray-700 dark:text-gray-300">Price:</span>
+              <span className="text-gray-900 dark:text-white font-semibold">{price_range}</span>
             </div>
           )}
           {design_style && (
-            <div>
-              <span className="font-medium text-gray-900">Style:</span>
-              <span className="text-gray-600 ml-1">{design_style}</span>
+            <div className="flex justify-between py-2">
+              <span className="font-medium text-gray-700 dark:text-gray-300">Style:</span>
+              <span className="text-gray-900 dark:text-white">{design_style}</span>
             </div>
           )}
           {dimensions && (
-            <div>
-              <span className="font-medium text-gray-900">Dimensions:</span>
-              <span className="text-gray-600 ml-1">{dimensions}</span>
+            <div className="flex justify-between py-2">
+              <span className="font-medium text-gray-700 dark:text-gray-300">Dimensions:</span>
+              <span className="text-gray-900 dark:text-white">{dimensions}</span>
             </div>
           )}
           {energy_rating && (
-            <div>
-              <span className="font-medium text-gray-900">Energy:</span>
-              <span className="text-gray-600 ml-1">{energy_rating}</span>
+            <div className="flex justify-between py-2">
+              <span className="font-medium text-gray-700 dark:text-gray-300">Energy:</span>
+              <span className="text-gray-900 dark:text-white">{energy_rating}</span>
             </div>
           )}
         </div>
@@ -167,11 +185,11 @@ const LuxeApplianceCard = ({ appliance, onRefresh }) => {
 
       {/* Features */}
       {features && (
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h4 className="font-medium text-gray-900 mb-2">Key Features</h4>
-          <div className="flex flex-wrap gap-1">
+        <div className="px-8 py-6 border-t border-gray-100 dark:border-gray-700">
+          <h4 className="font-semibold text-gray-800 dark:text-white mb-4 text-lg">Key Features</h4>
+          <div className="flex flex-wrap gap-3">
             {features.split(',').map((feature, index) => (
-              <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <span key={index} className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
                 {feature.trim()}
               </span>
             ))}
@@ -181,69 +199,82 @@ const LuxeApplianceCard = ({ appliance, onRefresh }) => {
 
       {/* Design Insights */}
       {aggregated_review && (
-        <div className="px-6 py-4 space-y-3">
-          {/* Design Rating */}
-          {aggregated_review.design_rating && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Design Rating:</span>
-              <div className="flex items-center space-x-1">
-                {renderStars(aggregated_review.design_rating)}
-                <span className="text-sm font-bold text-gray-900">
-                  {aggregated_review.design_rating.toFixed(1)}
-                </span>
+        <div className="px-8 py-6 border-t border-gray-100 dark:border-gray-700">
+          <h4 className="font-semibold text-gray-800 dark:text-white mb-6 text-lg">Detailed Ratings</h4>
+          <div className="space-y-4">
+            {/* Design Rating */}
+            {aggregated_review.design_rating && (
+              <div className="flex items-center justify-between py-2">
+                <span className="text-base font-medium text-gray-700 dark:text-gray-300">Design:</span>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1">
+                    {renderStars(aggregated_review.design_rating)}
+                  </div>
+                  <span className="text-lg font-bold text-gray-800 dark:text-white min-w-[3rem]">
+                    {aggregated_review.design_rating.toFixed(1)}
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Functionality Rating */}
-          {aggregated_review.functionality_rating && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Functionality:</span>
-              <div className="flex items-center space-x-1">
-                {renderStars(aggregated_review.functionality_rating)}
-                <span className="text-sm font-bold text-gray-900">
-                  {aggregated_review.functionality_rating.toFixed(1)}
-                </span>
+            {/* Functionality Rating */}
+            {aggregated_review.functionality_rating && (
+              <div className="flex items-center justify-between py-2">
+                <span className="text-base font-medium text-gray-700 dark:text-gray-300">Functionality:</span>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1">
+                    {renderStars(aggregated_review.functionality_rating)}
+                  </div>
+                  <span className="text-lg font-bold text-gray-800 dark:text-white min-w-[3rem]">
+                    {aggregated_review.functionality_rating.toFixed(1)}
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Value Rating */}
-          {aggregated_review.value_rating && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Value:</span>
-              <div className="flex items-center space-x-1">
-                {renderStars(aggregated_review.value_rating)}
-                <span className="text-sm font-bold text-gray-900">
-                  {aggregated_review.value_rating.toFixed(1)}
-                </span>
+            {/* Value Rating */}
+            {aggregated_review.value_rating && (
+              <div className="flex items-center justify-between py-2">
+                <span className="text-base font-medium text-gray-700 dark:text-gray-300">Value:</span>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1">
+                    {renderStars(aggregated_review.value_rating)}
+                  </div>
+                  <span className="text-lg font-bold text-gray-800 dark:text-white min-w-[3rem]">
+                    {aggregated_review.value_rating.toFixed(1)}
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        </div>
+      )}
 
-          {/* Sentiment Summaries */}
+      {/* User Feedback */}
+      {aggregated_review && (
+        <div className="px-8 py-6 space-y-6 border-t border-gray-100 dark:border-gray-700">
           {aggregated_review.positive_sentiment_summary && (
-            <div className="text-sm">
-              <span className="font-medium text-green-600 flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                Positive:
-              </span>
-              <p className="text-gray-600 mt-1 text-xs leading-relaxed">
+            <div>
+              <div className="flex items-center mb-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                <span className="font-semibold text-green-700 dark:text-green-400 text-base">
+                  What Users Love
+                </span>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed pl-5">
                 {aggregated_review.positive_sentiment_summary}
               </p>
             </div>
           )}
           {aggregated_review.negative_sentiment_summary && (
-            <div className="text-sm">
-              <span className="font-medium text-red-600 flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                Negative:
-              </span>
-              <p className="text-gray-600 mt-1 text-xs leading-relaxed">
+            <div>
+              <div className="flex items-center mb-3">
+                <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                <span className="font-semibold text-orange-700 dark:text-orange-400 text-base">
+                  Common Concerns
+                </span>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed pl-5">
                 {aggregated_review.negative_sentiment_summary}
               </p>
             </div>
@@ -251,14 +282,14 @@ const LuxeApplianceCard = ({ appliance, onRefresh }) => {
 
           {/* Design Trends */}
           {aggregated_review.design_trends && (
-            <div className="text-sm">
-              <span className="font-medium text-purple-600 flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                </svg>
-                Design Trends:
-              </span>
-              <p className="text-gray-600 mt-1 text-xs leading-relaxed">
+            <div>
+              <div className="flex items-center mb-3">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                <span className="font-semibold text-purple-700 dark:text-purple-400 text-base">
+                  Design Trends
+                </span>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed pl-5">
                 {aggregated_review.design_trends}
               </p>
             </div>
@@ -266,14 +297,14 @@ const LuxeApplianceCard = ({ appliance, onRefresh }) => {
 
           {/* Competitor Mentions */}
           {aggregated_review.competitor_mentions && aggregated_review.competitor_mentions !== 'No competitor mentions' && (
-            <div className="text-sm">
-              <span className="font-medium text-orange-600 flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Competitors:
-              </span>
-              <p className="text-gray-600 mt-1 text-xs leading-relaxed">
+            <div>
+              <div className="flex items-center mb-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                <span className="font-semibold text-blue-700 dark:text-blue-400 text-base">
+                  Competitors
+                </span>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed pl-5">
                 {aggregated_review.competitor_mentions}
               </p>
             </div>
@@ -282,28 +313,28 @@ const LuxeApplianceCard = ({ appliance, onRefresh }) => {
       )}
 
       {/* Refresh Button */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+      <div className="p-8 border-t border-gray-100 dark:border-gray-700">
         <button
           onClick={handleRefreshReviews}
           disabled={isRefreshing}
-          className={`w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+          className={`w-full px-6 py-3 text-base font-medium rounded-xl transition-all duration-200 ${
             isRefreshing
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+              ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              : 'bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 border border-accent-blue/20 dark:border-accent-blue/30 hover:shadow-md'
           }`}
         >
           {isRefreshing ? (
             <span className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Refreshing...
+              Refreshing Reviews...
             </span>
           ) : (
             <span className="flex items-center justify-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               Refresh Reviews
             </span>

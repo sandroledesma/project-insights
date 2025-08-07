@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LuxeApplianceCard from '../components/LuxeApplianceCard';
+import FilterBar from '../components/FilterBar';
 import apiService from '../services/api';
 
 const LuxeApplianceList = () => {
@@ -12,10 +13,21 @@ const LuxeApplianceList = () => {
   const [filterDesignStyle, setFilterDesignStyle] = useState('');
   const [sortBy, setSortBy] = useState('rating'); // Default to rating sort
   const [designInsights, setDesignInsights] = useState(null);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     fetchAppliances();
     fetchDesignInsights();
+  }, []);
+
+  // Handle scroll events for responsive header
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const fetchAppliances = async () => {
@@ -112,170 +124,162 @@ const LuxeApplianceList = () => {
     );
   }
 
+  // Define filter options for the FilterBar component
+  const sortOptions = [
+    { value: 'rating', label: 'Overall Rating (Highest First)' },
+    { value: 'design_rating', label: 'Design Rating (Highest First)' },
+    { value: 'price', label: 'Price (Highest First)' },
+    { value: 'brand', label: 'Brand (A-Z)' },
+    { value: 'name', label: 'Name (A-Z)' }
+  ];
+
+  const filters = [
+    {
+      label: 'Brand',
+      value: filterBrand,
+      onChange: setFilterBrand,
+      options: brands,
+      allLabel: 'All Brands'
+    },
+    {
+      label: 'Category',
+      value: filterCategory,
+      onChange: setFilterCategory,
+      options: categories,
+      allLabel: 'All Categories'
+    },
+    {
+      label: 'Design Style',
+      value: filterDesignStyle,
+      onChange: setFilterDesignStyle,
+      options: designStyles,
+      allLabel: 'All Styles'
+    }
+  ];
+
+  // Calculate dynamic values based on scroll - tighter spacing
+  const headerPadding = Math.max(12, 24 - scrollY / 10); // Reduced from 16-32 to 12-24
+  const iconSize = Math.max(28, 48 - scrollY / 5); // Reduced from 32-64 to 28-48
+  const titleSize = Math.max(18, 28 - scrollY / 8); // Reduced from 20-36 to 18-28
+  const subtitleSize = Math.max(13, 16 - scrollY / 15); // Reduced from 14-18 to 13-16
+  const subtitleOpacity = Math.max(0, 1 - scrollY / 150);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-100 dark:bg-dark-bg">
+      {/* Header with scroll-responsive behavior */}
+      <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Luxe Appliances</h1>
-            <p className="text-lg text-gray-600">Design insights and renovation trends for luxury kitchen appliances</p>
+          <div 
+            className="transition-all duration-300"
+            style={{ paddingTop: `${headerPadding}px`, paddingBottom: `${headerPadding}px` }}
+          >
+            <div className="text-center">
+              <div 
+                className="inline-flex items-center justify-center rounded-xl mb-4 bg-gradient-to-br from-green-500 to-teal-600 text-white shadow-lg transition-all duration-300"
+                style={{ 
+                  width: `${iconSize}px`, 
+                  height: `${iconSize}px`,
+                  marginBottom: `${Math.max(6, 12 - scrollY / 20)}px` // Reduced from 8-16 to 6-12
+                }}
+              >
+                <svg 
+                  className="transition-all duration-300" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                  style={{ width: `${iconSize * 0.5}px`, height: `${iconSize * 0.5}px` }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h1 
+                className="font-bold text-gray-800 dark:text-white mb-2 transition-all duration-300"
+                style={{ 
+                  fontSize: `${titleSize}px`,
+                  marginBottom: `${Math.max(3, 6 - scrollY / 40)}px` // Reduced from 4-8 to 3-6
+                }}
+              >
+                Luxury Appliances
+              </h1>
+              <p 
+                className="text-gray-500 dark:text-gray-400 transition-all duration-300"
+                style={{ 
+                  fontSize: `${subtitleSize}px`,
+                  opacity: subtitleOpacity,
+                  transform: `translateY(${(1 - subtitleOpacity) * -10}px)`
+                }}
+              >
+                Design insights and renovation trends for premium kitchen appliances
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <FilterBar
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        filters={filters}
+        sortOptions={sortOptions}
+        resultsCount={filteredAndSortedAppliances.length}
+        totalCount={appliances.length}
+        placeholder="Search by name, brand, or description..."
+      />
+
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Filters */}
-          <div className="lg:w-80 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
-              
-              {/* Search */}
-              <div className="mb-6">
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                  Search Appliances
-                </label>
-                <input
-                  type="text"
-                  id="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by name, brand, or description..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Sort By */}
-              <div className="mb-6">
-                <label htmlFor="sortBy" className="block text-sm font-medium text-gray-700 mb-2">
-                  Sort By
-                </label>
-                <select
-                  id="sortBy"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="rating">Overall Rating (Highest First)</option>
-                  <option value="design_rating">Design Rating (Highest First)</option>
-                  <option value="price">Price (Highest First)</option>
-                  <option value="brand">Brand (A-Z)</option>
-                  <option value="name">Name (A-Z)</option>
-                </select>
-              </div>
-
-              {/* Brand Filter */}
-              <div className="mb-6">
-                <label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-2">
-                  Brand
-                </label>
-                <select
-                  id="brand"
-                  value={filterBrand}
-                  onChange={(e) => setFilterBrand(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">All Brands</option>
-                  {brands.map(brand => (
-                    <option key={brand} value={brand}>{brand}</option>
+        {/* Design Insights Summary */}
+        {designInsights && (
+          <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Design Insights</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-medium text-gray-800 dark:text-white mb-2">Top Design Trends</h3>
+                <div className="space-y-2">
+                  {Object.entries(designInsights.design_trends || {}).slice(0, 5).map(([trend, count]) => (
+                    <div key={trend} className="flex justify-between text-sm">
+                      <span className="text-gray-500 dark:text-gray-400">{trend}</span>
+                      <span className="font-medium text-gray-800 dark:text-white">{count}</span>
+                    </div>
                   ))}
-                </select>
+                </div>
               </div>
-
-              {/* Category Filter */}
-              <div className="mb-6">
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
-                </label>
-                <select
-                  id="category"
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">All Categories</option>
-                  {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+              <div>
+                <h3 className="font-medium text-gray-800 dark:text-white mb-2">Competitor Mentions</h3>
+                <div className="space-y-2">
+                  {Object.entries(designInsights.competitor_mentions || {}).slice(0, 5).map(([competitor, count]) => (
+                    <div key={competitor} className="flex justify-between text-sm">
+                      <span className="text-gray-500 dark:text-gray-400">{competitor}</span>
+                      <span className="font-medium text-gray-800 dark:text-white">{count}</span>
+                    </div>
                   ))}
-                </select>
-              </div>
-
-              {/* Design Style Filter */}
-              <div className="mb-6">
-                <label htmlFor="designStyle" className="block text-sm font-medium text-gray-700 mb-2">
-                  Design Style
-                </label>
-                <select
-                  id="designStyle"
-                  value={filterDesignStyle}
-                  onChange={(e) => setFilterDesignStyle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">All Styles</option>
-                  {designStyles.map(style => (
-                    <option key={style} value={style}>{style}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Results Count */}
-              <div className="pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  Showing {filteredAndSortedAppliances.length} of {appliances.length} appliances
-                </p>
+                </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Main Content */}
-          <div className="flex-1">
-            {/* Design Insights Summary */}
-            {designInsights && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Design Insights</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Top Design Trends</h3>
-                    <div className="space-y-2">
-                      {Object.entries(designInsights.design_trends || {}).slice(0, 5).map(([trend, count]) => (
-                        <div key={trend} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{trend}</span>
-                          <span className="font-medium text-gray-900">{count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Competitor Mentions</h3>
-                    <div className="space-y-2">
-                      {Object.entries(designInsights.competitor_mentions || {}).slice(0, 5).map(([competitor, count]) => (
-                        <div key={competitor} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{competitor}</span>
-                          <span className="font-medium text-gray-900">{count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Appliances Grid */}
-            {filteredAndSortedAppliances.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-gray-500 text-lg mb-2">No appliances found</div>
-                <p className="text-gray-400">Try adjusting your search or filters</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredAndSortedAppliances.map(appliance => (
-                  <LuxeApplianceCard key={appliance.id} appliance={appliance} onRefresh={handleRefreshAllAppliances} />
-                ))}
-              </div>
-            )}
+        {/* Appliances Grid */}
+        {filteredAndSortedAppliances.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <div className="text-gray-500 dark:text-gray-400 text-lg mb-2">No appliances found</div>
+            <p className="text-gray-400 dark:text-gray-500">Try adjusting your search or filters</p>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8">
+            {filteredAndSortedAppliances.map(appliance => (
+              <LuxeApplianceCard key={appliance.id} appliance={appliance} onRefresh={handleRefreshAllAppliances} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -41,13 +41,12 @@ def create_app(config_name='default'):
         app.logger.info('Insight Engine startup')
     
     # Register blueprints
-    from project.api import ai_tools_bp, luxury_appliances_bp
+    from project.api.products import products_bp
     
-    app.register_blueprint(ai_tools_bp, url_prefix='/api')
-    app.register_blueprint(luxury_appliances_bp, url_prefix='/api')
+    app.register_blueprint(products_bp, url_prefix='/api')
     
     # Import models to ensure they're registered with SQLAlchemy
-    from project.models import AITool, LuxuryAppliance, AggregatedReview
+    from project.models.models import Category, SubCategory, Product, ProductAttribute, PriceHistory, AggregatedReview
     
     # Create a simple health check route
     @app.route('/health')

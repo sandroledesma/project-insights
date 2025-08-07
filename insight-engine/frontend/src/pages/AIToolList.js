@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ToolCard from '../components/ToolCard';
+import FilterBar from '../components/FilterBar';
 import apiService from '../services/api';
 
 const AIToolList = () => {
@@ -10,9 +11,20 @@ const AIToolList = () => {
   const [filterUseCase, setFilterUseCase] = useState('');
   const [filterPricing, setFilterPricing] = useState('');
   const [sortBy, setSortBy] = useState('rating'); // Default to rating sort
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     fetchTools();
+  }, []);
+
+  // Handle scroll events for responsive header
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const fetchTools = async () => {
@@ -90,119 +102,121 @@ const AIToolList = () => {
     );
   }
 
+  // Define filter options for the FilterBar component
+  const sortOptions = [
+    { value: 'rating', label: 'Rating (Highest First)' },
+    { value: 'name', label: 'Name (A-Z)' },
+    { value: 'reviews', label: 'Has Reviews' }
+  ];
+
+  const filters = [
+    {
+      label: 'Use Case',
+      value: filterUseCase,
+      onChange: setFilterUseCase,
+      options: useCases,
+      allLabel: 'All Use Cases'
+    },
+    {
+      label: 'Pricing Model',
+      value: filterPricing,
+      onChange: setFilterPricing,
+      options: pricingModels,
+      allLabel: 'All Pricing Models'
+    }
+  ];
+
+  // Calculate dynamic values based on scroll - tighter spacing
+  const headerPadding = Math.max(12, 24 - scrollY / 10); // Reduced from 16-32 to 12-24
+  const iconSize = Math.max(28, 48 - scrollY / 5); // Reduced from 32-64 to 28-48
+  const titleSize = Math.max(18, 28 - scrollY / 8); // Reduced from 20-36 to 18-28
+  const subtitleSize = Math.max(13, 16 - scrollY / 15); // Reduced from 14-18 to 13-16
+  const subtitleOpacity = Math.max(0, 1 - scrollY / 150);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-100 dark:bg-dark-bg">
+      {/* Header with scroll-responsive behavior */}
+      <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">AI Tool Reviews</h1>
-            <p className="text-lg text-gray-600">Discover and compare AI tools based on real Reddit reviews</p>
+          <div 
+            className="transition-all duration-300"
+            style={{ paddingTop: `${headerPadding}px`, paddingBottom: `${headerPadding}px` }}
+          >
+            <div className="text-center">
+              <div 
+                className="inline-flex items-center justify-center rounded-xl mb-4 bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg transition-all duration-300"
+                style={{ 
+                  width: `${iconSize}px`, 
+                  height: `${iconSize}px`,
+                  marginBottom: `${Math.max(6, 12 - scrollY / 20)}px` // Reduced from 8-16 to 6-12
+                }}
+              >
+                <svg 
+                  className="transition-all duration-300" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                  style={{ width: `${iconSize * 0.5}px`, height: `${iconSize * 0.5}px` }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h1 
+                className="font-bold text-gray-800 dark:text-white mb-2 transition-all duration-300"
+                style={{ 
+                  fontSize: `${titleSize}px`,
+                  marginBottom: `${Math.max(3, 6 - scrollY / 40)}px` // Reduced from 4-8 to 3-6
+                }}
+              >
+                AI Tools
+              </h1>
+              <p 
+                className="text-gray-500 dark:text-gray-400 transition-all duration-300"
+                style={{ 
+                  fontSize: `${subtitleSize}px`,
+                  opacity: subtitleOpacity,
+                  transform: `translateY(${(1 - subtitleOpacity) * -10}px)`
+                }}
+              >
+                Discover and compare AI tools based on real Reddit reviews
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <FilterBar
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        filters={filters}
+        sortOptions={sortOptions}
+        resultsCount={filteredAndSortedTools.length}
+        totalCount={tools.length}
+        placeholder="Search by name or description..."
+      />
+
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Filters */}
-          <div className="lg:w-80 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
-              
-              {/* Search */}
-              <div className="mb-6">
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                  Search Tools
-                </label>
-                <input
-                  type="text"
-                  id="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by name or description..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Sort By */}
-              <div className="mb-6">
-                <label htmlFor="sortBy" className="block text-sm font-medium text-gray-700 mb-2">
-                  Sort By
-                </label>
-                <select
-                  id="sortBy"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="rating">Rating (Highest First)</option>
-                  <option value="name">Name (A-Z)</option>
-                  <option value="reviews">Has Reviews</option>
-                </select>
-              </div>
-
-              {/* Use Case Filter */}
-              <div className="mb-6">
-                <label htmlFor="useCase" className="block text-sm font-medium text-gray-700 mb-2">
-                  Use Case
-                </label>
-                <select
-                  id="useCase"
-                  value={filterUseCase}
-                  onChange={(e) => setFilterUseCase(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">All Use Cases</option>
-                  {useCases.map(useCase => (
-                    <option key={useCase} value={useCase}>{useCase}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Pricing Filter */}
-              <div className="mb-6">
-                <label htmlFor="pricing" className="block text-sm font-medium text-gray-700 mb-2">
-                  Pricing Model
-                </label>
-                <select
-                  id="pricing"
-                  value={filterPricing}
-                  onChange={(e) => setFilterPricing(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">All Pricing Models</option>
-                  {pricingModels.map(pricing => (
-                    <option key={pricing} value={pricing}>{pricing}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Results Count */}
-              <div className="pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  Showing {filteredAndSortedTools.length} of {tools.length} tools
-                </p>
-              </div>
+        {filteredAndSortedTools.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
+            <div className="text-gray-500 dark:text-gray-400 text-lg mb-2">No tools found</div>
+            <p className="text-gray-400 dark:text-gray-500">Try adjusting your search or filters</p>
           </div>
-
-          {/* Main Content */}
-          <div className="flex-1">
-            {/* Tools Grid */}
-            {filteredAndSortedTools.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-gray-500 text-lg mb-2">No tools found</div>
-                <p className="text-gray-400">Try adjusting your search or filters</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredAndSortedTools.map(tool => (
-                  <ToolCard key={tool.id} tool={tool} onRefresh={handleRefreshAllTools} />
-                ))}
-              </div>
-            )}
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8">
+            {filteredAndSortedTools.map(tool => (
+              <ToolCard key={tool.id} tool={tool} onRefresh={handleRefreshAllTools} />
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

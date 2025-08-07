@@ -1,3 +1,3 @@
-from .models import AITool, LuxuryAppliance, AggregatedReview
+from .models import Category, SubCategory, Product, ProductAttribute, PriceHistory, AggregatedReview
 
-__all__ = ['AITool', 'LuxuryAppliance', 'AggregatedReview'] 
+__all__ = ['Category', 'SubCategory', 'Product', 'ProductAttribute', 'PriceHistory', 'AggregatedReview'] 
